@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8d0159c0_c31804c3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2022-12-03T14:51:36Z",
+      "side": 1,
+      "message": "works with KorAP-Docker if you replace TEST-oauth with LDAP-auth\n\nTested with:\n\nKORAP_URL\u003d\"http://kodi:64543\" npm test",
+      "revId": "7989874dbe12959b375789c427021395c7853954",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
