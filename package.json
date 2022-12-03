@@ -1,0 +1,19 @@
+{
+  "name": "korap-e2e-tests",
+  "version": "0.0.1",
+  "description": "Performs end-to-end tests on a KorAP instance",
+  "main": "mocha",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Marc Kupietz",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "mocha": "^10.1.0",
+    "should": "^13.2.3"
+  },
+  "devDependencies": {}
+}
