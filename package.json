@@ -4,7 +4,8 @@
   "description": "Performs end-to-end tests on a KorAP instance",
   "main": "mocha",
   "directories": {
-    "test": "test"
+    "test": "test",
+    "lib": "lib"
   },
   "scripts": {
     "test": "mocha"
@@ -12,6 +13,7 @@
   "author": "Marc Kupietz",
   "license": "BSD-2-Clause",
   "dependencies": {
+    "KorAPRC": "file:./lib/korap_rc.ts",
     "mocha": "^10.1.0",
     "should": "^13.2.3"
   },
