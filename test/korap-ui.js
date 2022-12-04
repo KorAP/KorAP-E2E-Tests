@@ -1,5 +1,7 @@
 const puppeteer = require('puppeteer')
 const chai = require('chai');
+const { afterEach } = require('mocha');
+const { doesNotMatch } = require('assert');
 const assert = chai.assert;
 const should = chai.should();
 
@@ -18,11 +20,23 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
     before(async () => {
         browser = await puppeteer.launch()
         page = await browser.newPage()
+        await page.setViewport({
+            width: 1280,
+            height: 768,
+            deviceScaleFactor: 1,
+          });
     })
 
     after(async () => {
         await browser.close()
     })
+
+    afterEach(async function () {
+        if (this.currentTest.state == "failed") {
+            console.log(this.currentTest);
+            await page.screenshot({path: "failed_" + this.currentTest.title.replaceAll(/[ ]/g, "_") + '.png'});
+        }
+     })
 
     it('KorAP UI is up and running',
         (async () => {
