@@ -33,7 +33,7 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
     afterEach(async function () {
         if (this.currentTest.state == "failed") {
-            await page.screenshot({path: "failed_" + this.currentTest.title.replaceAll(/[ ]/g, "_") + '.png'});
+            await page.screenshot({path: "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png'});
         }
      })
 
