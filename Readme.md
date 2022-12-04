@@ -23,4 +23,5 @@ KORAP_URL="http://localhost:64543" KORAP_LOGIN="user2" KORAP_PWD="password2"\
 
 ### Comments on Environment Variables
 
-Use `KORAP_LOGIN="" npm test` to skip login and logout tests, e.g. to run tests against Kustvakt-lite.
+- Use `KORAP_LOGIN="" npm test` to skip login and logout tests, e.g. to run tests against Kustvakt-lite.
+- The tests respect the current locale, consider e.g. `LC_ALL=C npm test`
