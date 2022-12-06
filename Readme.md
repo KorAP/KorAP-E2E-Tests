@@ -48,3 +48,6 @@ to facilitate reviewing (see [Gerrit Code Review - A Quick Introduction](https:/
 if you are not familiar with Gerrit). However, we are also happy to accept comments and pull requests
 via GitHub.
 
+## References
+
+Diewald, Nils/Margaretha, Eliza/Kupietz, Marc (2021): Lessons learned in quality management for online research software tools in linguistics. In: Lüngen, Harald et al. (Hg.): Proceedings of the Workshop on Challenges in the Management of Large Corpora (CMLC-9) 2021. Limerick, 12 July 2021 (Online-Event). Mannheim: Leibniz-Institut für Deutsche Sprache, p. 20–26. [doi:10.14618/ids-pub-10469](https://doi.org/10.14618/ids-pub-10469).
