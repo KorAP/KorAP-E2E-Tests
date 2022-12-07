@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "33fe87e5_9c1a85a5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2022-12-07T06:19:11Z",
+      "side": 1,
+      "message": "Performs the test on main instance. I thinl that should be OK.\n\nWorks and looks like:\n\nhttps://github.com/morckx/KorAP-E2E-Tests/actions/runs/3636364542/jobs/6136275304#step:7:1",
+      "revId": "1784c72acecd385f1151a8752117b985d991f4cb",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
