@@ -18,7 +18,7 @@ defaults to:
 
 ```bash
 KORAP_URL="http://localhost:64543" KORAP_LOGIN="user2" KORAP_PWD="password2"\
- KORAP_QUERIES="npm test" KORAP_QUERIES='geht, [orth=geht & cmc/pos=VVFIN]'\
+ KORAP_QUERIES='geht, [orth=geht & cmc/pos=VVFIN]'\
  npm test
 ```
 
