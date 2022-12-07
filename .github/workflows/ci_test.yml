@@ -1,0 +1,28 @@
+name: CI Test
+
+on: [push, pull_request]
+
+jobs:
+  ci-test:
+    runs-on: ubuntu-latest
+    env:
+      KORAP_URL: http://korap.ids-mannheim.de/
+      KORAP_LOGIN: ""
+      KORAP_QUERIES: 'geht, [orth=geht & tt/pos=VVFIN]'
+    steps:
+      - name: Checkout KorAP-E2E-Tests
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          cache: npm
+          node-version: latest
+      - name: Install dependencies
+        run: npm ci
+      - name: Setup cache for Chromium binary
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/puppeteer/chrome
+          key: ubuntu-latest-chromium-${{ hashFiles('packages/puppeteer-core/src/revisions.ts') }}
+      - name: Test end-to-end tests
+        run: npm test
