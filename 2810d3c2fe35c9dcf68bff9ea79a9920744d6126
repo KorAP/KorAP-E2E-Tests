@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c28b7579_f6dc8ae6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 19
+      },
+      "writtenOn": "2022-12-07T10:30:33Z",
+      "side": 1,
+      "message": "Or I don\u0027t understand what this should do ...",
+      "revId": "2810d3c2fe35c9dcf68bff9ea79a9920744d6126",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
