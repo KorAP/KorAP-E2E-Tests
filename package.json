@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "Performs end-to-end tests on a KorAP instance",
   "main": "mocha",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KorAP/KorAP-E2E-Tests"
+  },
   "directories": {
     "test": "test",
     "lib": "lib"
