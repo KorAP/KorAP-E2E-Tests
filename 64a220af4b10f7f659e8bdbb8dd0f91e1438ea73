@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ef19fbe9_6c0a742f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 19
+      },
+      "writtenOn": "2022-12-08T08:03:30Z",
+      "side": 1,
+      "message": "You want to check explicitely for the https forwarding as well?",
+      "revId": "64a220af4b10f7f659e8bdbb8dd0f91e1438ea73",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
