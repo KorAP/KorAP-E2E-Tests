@@ -24,6 +24,30 @@
       "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "9fb9875e_c0c337f8",
+        "filename": ".github/workflows/ci_test.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2022-12-08T08:59:10Z",
+      "side": 1,
+      "message": "Oops, copy-pasto...",
+      "parentUuid": "6aad76fe_609b378e",
+      "range": {
+        "startLine": 13,
+        "startChar": 7,
+        "endLine": 14,
+        "endChar": 33
+      },
+      "revId": "64a220af4b10f7f659e8bdbb8dd0f91e1438ea73",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "ef19fbe9_6c0a742f",
