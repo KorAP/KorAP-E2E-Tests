@@ -19,6 +19,6 @@
   "dependencies": {
     "chai": "^4.3.7",
     "mocha": "^10.1.0",
-    "puppeteer": "^19.3.0"
+    "puppeteer": "^19.6.0"
   }
 }
