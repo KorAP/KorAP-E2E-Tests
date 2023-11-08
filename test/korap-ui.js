@@ -18,7 +18,9 @@ function ifConditionIt(title, condition, test) {
 describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
     before(async () => {
-        browser = await puppeteer.launch()
+        browser = await puppeteer.launch({
+            headless: "new",
+        })
         page = await browser.newPage()
         await page.setViewport({
             width: 1280,
