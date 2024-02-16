@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "344640d3_a5cd2cf7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 19
+      },
+      "writtenOn": "2024-02-16T10:28:29Z",
+      "side": 1,
+      "message": "I have problems to install this (some npm issues ...), but lifting the version of resolver should help to deal with https://github.com/indutny/node-ip/issues/136 . Maybe the package needs to be `overide`n - not sure. As I said, I can\u0027t lock the package with npm successfully.",
+      "revId": "2c989bbc1ea605cf53807eb2626e5a3ae3db613a",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
