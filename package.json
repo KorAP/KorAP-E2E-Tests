@@ -19,6 +19,7 @@
   "dependencies": {
     "chai": "^4.3.10",
     "mocha": "^10.2.0",
+    "pac-resolver": "^7.0.1",
     "puppeteer": "^21.9.0"
   }
 }
