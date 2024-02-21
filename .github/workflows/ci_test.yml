@@ -11,9 +11,9 @@ jobs:
       KORAP_QUERIES: 'geht, [orth=geht & tt/pos=VVFIN]'
     steps:
       - name: Checkout KorAP-E2E-Tests
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           cache: npm
           node-version: latest
