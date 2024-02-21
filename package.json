@@ -1,6 +1,6 @@
 {
   "name": "korap-e2e-tests",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Performs end-to-end tests on a KorAP instance",
   "main": "mocha",
   "repository": {
