@@ -17,8 +17,8 @@
   "author": "Marc Kupietz",
   "license": "APACHE-2.0",
   "dependencies": {
-    "chai": "^4.3.10",
+    "chai": "^4.4.1",
     "mocha": "^10.2.0",
-    "puppeteer": "^21.9.0"
+    "puppeteer": "^22.1.0"
   }
 }
