@@ -22,10 +22,19 @@ KORAP_URL="http://localhost:64543" KORAP_LOGIN="user2" KORAP_PWD="password2"\
  npm test
 ```
 
+
+
+
 ### Comments on Environment Variables
 
 - Use `KORAP_LOGIN="" npm test` to skip login and logout tests, e.g. to run tests against Kustvakt-lite.
 - The tests respect the current locale, consider e.g. `LC_ALL=C npm test`
+
+#### Notifications
+
+If you run KorAP-E2E-tests as a cronjob or in scheduled pipelines and
+want to get notified about failed tests via slack, set the environment variable `SLACK_WEBHOOK_URL` to the URL of your [slack webhook](https://api.slack.com/messaging/webhooks).
+
 
 ## Development and License
 
@@ -33,7 +42,7 @@ KORAP_URL="http://localhost:64543" KORAP_LOGIN="user2" KORAP_PWD="password2"\
 
 - [Marc Kupietz](https://www.ids-mannheim.de/digspra/personal/kupietz.html)
 
-Copyright (c) 2022, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
+Copyright (c) 2024, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
 
 This package is developed as part of the [KorAP](http://korap.ids-mannheim.de/) Corpus Analysis Platform at the Leibniz Institute for German Language ([IDS](http://www.ids-mannheim.de/)).
 
