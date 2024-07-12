@@ -19,6 +19,7 @@
   "dependencies": {
     "chai": "^4.4.1",
     "mocha": "^10.6.0",
-    "puppeteer": "^22.1.0"
+    "puppeteer": "^22.1.0",
+    "slack-notify": "^2.0.7"
   }
 }
