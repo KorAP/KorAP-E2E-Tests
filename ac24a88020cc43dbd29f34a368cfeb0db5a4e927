@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6625dbd9_7ed48a3b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2024-07-12T18:05:53Z",
+      "side": 1,
+      "message": "Channel is already encoded in webhook url",
+      "revId": "ac24a88020cc43dbd29f34a368cfeb0db5a4e927",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
