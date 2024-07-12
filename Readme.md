@@ -22,10 +22,18 @@ KORAP_URL="http://localhost:64543" KORAP_LOGIN="user2" KORAP_PWD="password2"\
  npm test
 ```
 
+
+
+
 ### Comments on Environment Variables
 
 - Use `KORAP_LOGIN="" npm test` to skip login and logout tests, e.g. to run tests against Kustvakt-lite.
 - The tests respect the current locale, consider e.g. `LC_ALL=C npm test`
+
+#### Notifications
+
+If you want to get notified about failed tests via slack, set the environment variable `SLACK_WEBHOOK_URL` to the URL of your slack webhook and `SLACK_CHANNEL` to the channel you want to post to.
+
 
 ## Development and License
 

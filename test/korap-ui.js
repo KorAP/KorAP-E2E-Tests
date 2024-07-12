@@ -4,12 +4,19 @@ const { afterEach } = require('mocha');
 const { doesNotMatch } = require('assert');
 const assert = chai.assert;
 const should = chai.should();
+var slack = null;
 
 const KORAP_URL = process.env.KORAP_URL || "http://localhost:64543";
 const KORAP_LOGIN = 'KORAP_LOGIN' in process.env ? process.env.KORAP_LOGIN : "user2"
 const KORAP_PWD = process.env.KORAP_PWD || "password2";
 const KORAP_QUERIES = process.env.KORAP_QUERIES || 'geht, [orth=geht & cmc/pos=VVFIN]'
 const korap_rc = require('../lib/korap_rc.js').new(KORAP_URL)
+
+const slack_webhook = process.env.SLACK_WEBHOOK_URL;
+const slack_channel = process.env.SLACK_CHANNEL;
+if (slack_webhook && slack_channel) {
+    slack = require('slack-notify')(slack_webhook);
+}
 
 function ifConditionIt(title, condition, test) {
     return condition ? it(title, test) : it.skip(title + " (skipped)", test)
@@ -36,6 +43,12 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
     afterEach(async function () {
         if (this.currentTest.state == "failed") {
             await page.screenshot({path: "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png'});
+            if (slack) {
+                slack.alert({
+                    text: 'Test on ' + KORAP_URL + ' failed: ' + this.currentTest.title,
+                    channel: slack_channel
+                })
+            }
         }
      })
 
