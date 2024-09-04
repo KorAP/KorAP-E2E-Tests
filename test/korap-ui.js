@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer')
 const chai = require('chai');
 const { afterEach } = require('mocha');
 const { doesNotMatch } = require('assert');
+const { log } = require('console');
 const assert = chai.assert;
 const should = chai.should();
 var slack = null;
@@ -13,6 +14,7 @@ const KORAP_QUERIES = process.env.KORAP_QUERIES || 'geht, [orth=geht & cmc/pos=V
 const korap_rc = require('../lib/korap_rc.js').new(KORAP_URL)
 
 const slack_webhook = process.env.SLACK_WEBHOOK_URL;
+
 if (slack_webhook) {
     slack = require('slack-notify')(slack_webhook);
 }
@@ -33,6 +35,7 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
             height: 768,
             deviceScaleFactor: 1,
           });
+        console.log("Browser version: " + await browser.version() + " started")
     })
 
     after(async () => {
