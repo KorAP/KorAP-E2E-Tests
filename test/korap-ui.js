@@ -1,4 +1,12 @@
-const puppeteer = require('puppeteer')
+const puppeteer = require('puppeteer-extra');
+puppeteer.use(require('puppeteer-extra-plugin-user-preferences')({
+    userPrefs: {
+        safebrowsing: {
+            enabled: false,
+            enhanced: false
+        }
+    }
+}));
 const chai = require('chai');
 const { afterEach } = require('mocha');
 const { doesNotMatch } = require('assert');
