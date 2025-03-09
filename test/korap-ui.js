@@ -36,10 +36,12 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
     before(async () => {
         browser = await puppeteer.launch({
             headless: "new",
+            // headless: false,
+            // args: [`--window-size=1920,1080`],
         })
         page = await browser.newPage()
         await page.setViewport({
-            width: 1280,
+            width: 1980,
             height: 768,
             deviceScaleFactor: 1,
           });
@@ -63,7 +65,8 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
     it('KorAP UI is up and running',
         (async () => {
-            await await page.goto(KORAP_URL);
+            page.goto(KORAP_URL);
+            await page.waitForNavigation({ waitUntil: 'networkidle2' });
             const query_field = await page.$("#q-field")
             assert.isNotNull(query_field, "#q-field not found. Kalamar not running?");
         }))
