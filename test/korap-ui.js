@@ -9,8 +9,6 @@ puppeteer.use(require('puppeteer-extra-plugin-user-preferences')({
 }));
 const chai = require('chai');
 const { afterEach } = require('mocha');
-const { doesNotMatch } = require('assert');
-const { log } = require('console');
 const assert = chai.assert;
 const should = chai.should();
 var slack = null;
@@ -35,16 +33,14 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
     before(async () => {
         browser = await puppeteer.launch({
-            headless: "new",
-            // headless: false,
-            // args: [`--window-size=1920,1080`],
+            headless: "shell"
         })
         page = await browser.newPage()
         await page.setViewport({
             width: 1980,
             height: 768,
             deviceScaleFactor: 1,
-          });
+        });
         console.log("Browser version: " + await browser.version() + " started")
     })
 
@@ -54,14 +50,14 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
     afterEach(async function () {
         if (this.currentTest.state == "failed") {
-            await page.screenshot({path: "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png'});
+            await page.screenshot({ path: "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png' });
             if (slack) {
                 slack.alert({
                     text: 'Test on ' + KORAP_URL + ' failed: ' + this.currentTest.title,
                 })
             }
         }
-     })
+    })
 
     it('KorAP UI is up and running',
         (async () => {
@@ -110,6 +106,6 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
         (async () => {
             const logout_result = await korap_rc.logout(page)
             logout_result.should.be.true
-        }))
+        })).timeout(15000)
 
 })

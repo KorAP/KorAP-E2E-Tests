@@ -42,7 +42,7 @@ want to get notified about failed tests via slack, set the environment variable 
 
 - [Marc Kupietz](https://www.ids-mannheim.de/digspra/personal/kupietz.html)
 
-Copyright (c) 2024, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
+Copyright (c) 2025, [Leibniz Institute for the German Language](http://www.ids-mannheim.de/), Mannheim, Germany
 
 This package is developed as part of the [KorAP](http://korap.ids-mannheim.de/) Corpus Analysis Platform at the Leibniz Institute for German Language ([IDS](http://www.ids-mannheim.de/)).
 
