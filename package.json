@@ -12,13 +12,15 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "test:ci": "mocha --reporter mocha-junit-reporter --reporter-options mochaFile=test-results.xml"
   },
   "author": "Marc Kupietz",
   "license": "APACHE-2.0",
   "dependencies": {
     "chai": "^4.4.1",
     "mocha": "^10.6.0",
+    "mocha-junit-reporter": "^2.2.1",
     "puppeteer": "^23.3.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-user-preferences": "^2.4.1",

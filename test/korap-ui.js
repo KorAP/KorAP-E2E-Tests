@@ -14,8 +14,8 @@ const should = chai.should();
 var slack = null;
 
 const KORAP_URL = process.env.KORAP_URL || "http://localhost:64543";
-const KORAP_LOGIN = 'KORAP_LOGIN' in process.env ? process.env.KORAP_LOGIN : "user2"
-const KORAP_PWD = process.env.KORAP_PWD || "password2";
+const KORAP_LOGIN = 'KORAP_USERNAME' in process.env ? process.env.KORAP_USERNAME : 'KORAP_LOGIN' in process.env ? process.env.KORAP_LOGIN : "user2"
+const KORAP_PWD = process.env.KORAP_PWD || process.env.KORAP_PASSWORD || "password2";
 const KORAP_QUERIES = process.env.KORAP_QUERIES || 'geht, [orth=geht & cmc/pos=VVFIN]'
 const korap_rc = require('../lib/korap_rc.js').new(KORAP_URL)
 
@@ -33,7 +33,16 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
     before(async () => {
         browser = await puppeteer.launch({
-            headless: "shell"
+            headless: "shell",
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--disable-gpu'
+            ]
         })
         page = await browser.newPage()
         await page.setViewport({

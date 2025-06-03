@@ -30,6 +30,15 @@ KORAP_URL="http://localhost:64543" KORAP_LOGIN="user2" KORAP_PWD="password2"\
 - Use `KORAP_LOGIN="" npm test` to skip login and logout tests, e.g. to run tests against Kustvakt-lite.
 - The tests respect the current locale, consider e.g. `LC_ALL=C npm test`
 
+## GitLab CI/CD
+
+This project includes GitLab CI/CD configuration for automated testing. See [GITLAB_CI_SETUP.md](GITLAB_CI_SETUP.md) for detailed setup instructions.
+
+Quick setup:
+1. Set the `KORAP_PASSWORD` variable in your GitLab project's CI/CD settings
+2. Optionally set `SLACK_WEBHOOK` for notifications
+3. Push to trigger the pipeline
+
 #### Notifications
 
 If you run KorAP-E2E-tests as a cronjob or in scheduled pipelines and
