@@ -18,7 +18,7 @@ defaults to:
 
 ```bash
 KORAP_URL="http://localhost:64543" KORAP_LOGIN="user2" KORAP_PWD="password2"\
- KORAP_QUERIES='geht, [orth=geht & cmc/pos=VVFIN]'\
+ KORAP_QUERIES='geht, [orth=geht & cmc/pos=VVFIN]' KORAP_MIN_TOKENS_IN_CORPUS="100000"\
  npm test
 ```
 
@@ -28,6 +28,7 @@ KORAP_URL="http://localhost:64543" KORAP_LOGIN="user2" KORAP_PWD="password2"\
 ### Comments on Environment Variables
 
 - Use `KORAP_LOGIN="" npm test` to skip login and logout tests, e.g. to run tests against Kustvakt-lite.
+- Use `KORAP_MIN_TOKENS_IN_CORPUS` to set the minimum expected number of tokens in the corpus for the corpus statistics test (default: 100000).
 - The tests respect the current locale, consider e.g. `LC_ALL=C npm test`
 
 ## GitLab CI/CD

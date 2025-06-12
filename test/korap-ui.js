@@ -17,6 +17,7 @@ const KORAP_URL = process.env.KORAP_URL || "http://localhost:64543";
 const KORAP_LOGIN = 'KORAP_USERNAME' in process.env ? process.env.KORAP_USERNAME : 'KORAP_LOGIN' in process.env ? process.env.KORAP_LOGIN : "user2"
 const KORAP_PWD = process.env.KORAP_PWD || process.env.KORAP_PASSWORD || "password2";
 const KORAP_QUERIES = process.env.KORAP_QUERIES || 'geht, [orth=geht & cmc/pos=VVFIN]'
+const KORAP_MIN_TOKENS_IN_CORPUS = parseInt(process.env.KORAP_MIN_TOKENS_IN_CORPUS || "100000", 10);
 const korap_rc = require('../lib/korap_rc.js').new(KORAP_URL)
 
 const slack_webhook = process.env.SLACK_WEBHOOK_URL;
@@ -95,6 +96,14 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
         (async () => {
             await korap_rc.assure_glimpse_off(page)
         }))
+
+    it('Corpus statistics show sufficient tokens',
+        (async () => {
+            const tokenCount = await korap_rc.check_corpus_statistics(page, KORAP_MIN_TOKENS_IN_CORPUS);
+            console.log(`Found ${tokenCount} tokens in corpus, minimum required: ${KORAP_MIN_TOKENS_IN_CORPUS}`);
+            tokenCount.should.be.above(KORAP_MIN_TOKENS_IN_CORPUS - 1,
+                `Corpus should have at least ${KORAP_MIN_TOKENS_IN_CORPUS} tokens, but found ${tokenCount}`);
+        })).timeout(25000)
 
     describe('Running searches that should have hits', () => {
 
