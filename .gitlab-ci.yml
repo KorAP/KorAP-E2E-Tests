@@ -8,6 +8,7 @@ variables:
   # Default test configuration
   KORAP_URL: "https://korap.ids-mannheim.de/"
   KORAP_QUERIES: 'geht, [orth=geht & tt/p="VVFIN"]'
+  MIN_TOKEN_IN_CORPUS: "22000000000"
   LC_ALL: "C"
   
   # Node.js configuration
