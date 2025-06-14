@@ -9,7 +9,7 @@ jobs:
       KORAP_URL: https://korap.ids-mannheim.de/
       KORAP_LOGIN: ""
       KORAP_QUERIES: 'geht, [orth=geht & tt/pos=VVFIN]'
-      MIN_TOKEN_IN_CORPUS: "22000000000"
+      KORAP_MIN_TOKENS_IN_CORPUS: "22000000000"
     steps:
       - name: Checkout KorAP-E2E-Tests
         uses: actions/checkout@v4

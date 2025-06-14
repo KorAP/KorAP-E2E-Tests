@@ -49,8 +49,8 @@ You can override the default configuration by setting these variables:
 - **Default**: `geht, [orth=geht & tt/p="VVFIN"]`
 - **Description**: Comma-separated list of queries to test
 
-#### MIN_TOKEN_IN_CORPUS
-- **Default**: `1000`
+#### KORAP_MIN_TOKENS_IN_CORPUS
+- **Default**: `100000`
 - **Description**: Minimum expected number of tokens in the corpus for the corpus statistics test
 
 ## Pipeline Triggers
@@ -135,7 +135,7 @@ export KORAP_USERNAME="your-username"
 export KORAP_PASSWORD="your-password"
 export KORAP_URL="https://korap.ids-mannheim.de/"
 export KORAP_QUERIES='geht, [orth=geht & tt/p="VVFIN"]'
-export MIN_TOKEN_IN_CORPUS="1000"
+export KORAP_MIN_TOKENS_IN_CORPUS="100000"
 export LC_ALL="C"
 
 npm test
