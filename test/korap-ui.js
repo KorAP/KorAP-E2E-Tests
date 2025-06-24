@@ -60,11 +60,35 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
     afterEach(async function () {
         if (this.currentTest.state == "failed") {
-            await page.screenshot({ path: "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png' });
+            const screenshotPath = "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png';
+            await page.screenshot({ path: screenshotPath });
+
             if (slack) {
-                slack.alert({
-                    text: 'Test on ' + KORAP_URL + ' failed: ' + this.currentTest.title,
-                })
+                try {
+                    // Send screenshot to Slack
+                    const fs = require('fs');
+                    const screenshotBuffer = fs.readFileSync(screenshotPath);
+
+                    await slack.send({
+                        text: `Test on ${KORAP_URL} failed: ${this.currentTest.title}`,
+                        attachments: [{
+                            fallback: `Screenshot of failed test: ${this.currentTest.title}`,
+                            color: 'danger',
+                            title: `Failed Test Screenshot: ${this.currentTest.title}`,
+                            image_url: 'attachment://screenshot.png'
+                        }],
+                        files: [{
+                            filename: 'screenshot.png',
+                            file: screenshotBuffer
+                        }]
+                    });
+                } catch (slackError) {
+                    console.error('Failed to send screenshot to Slack:', slackError.message);
+                    // Fallback to text-only notification
+                    slack.alert({
+                        text: `Test on ${KORAP_URL} failed: ${this.currentTest.title} (Screenshot saved locally as ${screenshotPath})`,
+                    });
+                }
             }
         }
     })
