@@ -60,11 +60,54 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
     afterEach(async function () {
         if (this.currentTest.state == "failed") {
-            await page.screenshot({ path: "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png' });
+            const screenshotPath = "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png';
+            await page.screenshot({ path: screenshotPath });
+
             if (slack) {
-                slack.alert({
-                    text: 'Test on ' + KORAP_URL + ' failed: ' + this.currentTest.title,
-                })
+                try {
+                    // First send text notification via webhook
+                    slack.alert({
+                        text: `🚨 Test on ${KORAP_URL} failed: *${this.currentTest.title}*`,
+                        attachments: [{
+                            color: 'danger',
+                            fields: [{
+                                title: 'Failed Test',
+                                value: this.currentTest.title,
+                                short: false
+                            }, {
+                                title: 'URL',
+                                value: KORAP_URL,
+                                short: true
+                            }]
+                        }]
+                    });
+                } catch (slackError) {
+                    console.error('Failed to send notification to Slack:', slackError.message);
+                }
+            }
+
+            // Try to upload screenshot via Slack Web API if token is available
+            const slackToken = process.env.SLACK_TOKEN;
+            if (slackToken) {
+                try {
+                    const { WebClient } = require('@slack/web-api');
+                    const fs = require('fs'); const web = new WebClient(slackToken);
+                    const channelId = process.env.SLACK_CHANNEL_ID || 'C07CM4JS48H';
+
+                    // Upload the file to Slack
+                    const result = await web.files.uploadV2({
+                        channel_id: channelId,
+                        file: fs.createReadStream(screenshotPath),
+                        filename: screenshotPath,
+                        title: `Screenshot: ${this.currentTest.title}`,
+                        initial_comment: `📸 Screenshot of failed test: ${this.currentTest.title} on ${KORAP_URL}`
+                    });
+
+                    console.log('Screenshot uploaded to Slack successfully');
+
+                } catch (uploadError) {
+                    console.error('Failed to upload screenshot to Slack:', uploadError.message);
+                }
             }
         }
     })

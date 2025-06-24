@@ -31,7 +31,9 @@ KORAP_URL="http://localhost:64543" KORAP_USERNAME="user2" KORAP_PASSWORD="passwo
 | `KORAP_PASSWORD` | `password2` | Password for KorAP login (also accepts legacy `KORAP_PWD`) |
 | `KORAP_QUERIES` | `geht, [orth=geht & cmc/pos=VVFIN]` | Comma-separated list of queries to test |
 | `KORAP_MIN_TOKENS_IN_CORPUS` | `100000` | Minimum expected number of tokens for corpus statistics test |
-| `SLACK_WEBHOOK_URL` | _(none)_ | Slack webhook URL for test failure notifications |
+| `SLACK_WEBHOOK_URL` | _(none)_ | Slack webhook URL for test failure notifications (text only) |
+| `SLACK_TOKEN` | _(none)_ | Slack bot token for uploading failure screenshots |
+| `SLACK_CHANNEL_ID` | `C07CM4JS48H` | Slack channel ID for screenshot uploads (e.g., `C1234567890`) |
 | `LC_ALL` | _(system default)_ | Locale setting (recommended: `C` for consistent results) |
 
 ### Usage Notes
