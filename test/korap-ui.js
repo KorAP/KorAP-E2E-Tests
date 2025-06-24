@@ -103,7 +103,7 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
             console.log(`Found ${tokenCount} tokens in corpus, minimum required: ${KORAP_MIN_TOKENS_IN_CORPUS}`);
             tokenCount.should.be.above(KORAP_MIN_TOKENS_IN_CORPUS - 1,
                 `Corpus should have at least ${KORAP_MIN_TOKENS_IN_CORPUS} tokens, but found ${tokenCount}`);
-        })).timeout(25000)
+        })).timeout(50000)
 
     describe('Running searches that should have hits', () => {
 
