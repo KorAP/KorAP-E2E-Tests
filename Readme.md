@@ -17,30 +17,40 @@ npm test
 defaults to:
 
 ```bash
-KORAP_URL="http://localhost:64543" KORAP_LOGIN="user2" KORAP_PWD="password2"\
+KORAP_URL="http://localhost:64543" KORAP_USERNAME="user2" KORAP_PASSWORD="password2"\
  KORAP_QUERIES='geht, [orth=geht & cmc/pos=VVFIN]' KORAP_MIN_TOKENS_IN_CORPUS="100000"\
  npm test
 ```
 
+### Environment Variables
 
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KORAP_URL` | `http://localhost:64543` | The KorAP instance URL to test against |
+| `KORAP_USERNAME` | `user2` | Username for KorAP login (also accepts legacy `KORAP_LOGIN`) |
+| `KORAP_PASSWORD` | `password2` | Password for KorAP login (also accepts legacy `KORAP_PWD`) |
+| `KORAP_QUERIES` | `geht, [orth=geht & cmc/pos=VVFIN]` | Comma-separated list of queries to test |
+| `KORAP_MIN_TOKENS_IN_CORPUS` | `100000` | Minimum expected number of tokens for corpus statistics test |
+| `SLACK_WEBHOOK_URL` | _(none)_ | Slack webhook URL for test failure notifications |
+| `LC_ALL` | _(system default)_ | Locale setting (recommended: `C` for consistent results) |
 
+### Usage Notes
 
-### Comments on Environment Variables
-
-- Use `KORAP_LOGIN="" npm test` to skip login and logout tests, e.g. to run tests against Kustvakt-lite.
-- Use `KORAP_MIN_TOKENS_IN_CORPUS` to set the minimum expected number of tokens in the corpus for the corpus statistics test (default: 100000).
-- The tests respect the current locale, consider e.g. `LC_ALL=C npm test`
+- Use `KORAP_USERNAME="" npm test` to skip login and logout tests, e.g. to run tests against Kustvakt-lite
+- The tests support both new variable names (`KORAP_USERNAME`, `KORAP_PASSWORD`) and legacy names (`KORAP_LOGIN`, `KORAP_PWD`) for backward compatibility
+- Set `LC_ALL=C` for consistent locale-independent test results
 
 ## GitLab CI/CD
 
 This project includes GitLab CI/CD configuration for automated testing. See [GITLAB_CI_SETUP.md](GITLAB_CI_SETUP.md) for detailed setup instructions.
 
 Quick setup:
-1. Set the `KORAP_PASSWORD` variable in your GitLab project's CI/CD settings
+
+1. Set the `KORAP_USERNAME` and `KORAP_PASSWORD` variables in your GitLab project's CI/CD settings
 2. Optionally set `SLACK_WEBHOOK` for notifications
 3. Push to trigger the pipeline
 
-#### Notifications
+### Notifications
 
 If you run KorAP-E2E-tests as a cronjob or in scheduled pipelines and
 want to get notified about failed tests via slack, set the environment variable `SLACK_WEBHOOK_URL` to the URL of your [slack webhook](https://api.slack.com/messaging/webhooks).
