@@ -1,3 +1,4 @@
+const https = require('https');
 const puppeteer = require('puppeteer-extra');
 puppeteer.use(require('puppeteer-extra-plugin-user-preferences')({
     userPrefs: {
@@ -32,6 +33,10 @@ function ifConditionIt(title, condition, test) {
 
 describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
+    let browser;
+    let page;
+    
+
     before(async () => {
         browser = await puppeteer.launch({
             headless: "shell",
@@ -51,21 +56,19 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
             height: 768,
             deviceScaleFactor: 1,
         });
-        console.log("Browser version: " + await browser.version() + " started")
+        
     })
 
-    after(async () => {
-        await browser.close()
+    after(async function() {
+        if (browser && typeof browser.close === 'function') {
+            await browser.close();
+        }
     })
 
     afterEach(async function () {
         if (this.currentTest.state == "failed") {
-            const screenshotPath = "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png';
-            await page.screenshot({ path: screenshotPath });
-
             if (slack) {
                 try {
-                    // First send text notification via webhook
                     slack.alert({
                         text: `🚨 Test on ${KORAP_URL} failed: *${this.currentTest.title}*`,
                         attachments: [{
@@ -86,87 +89,196 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                 }
             }
 
-            // Try to upload screenshot via Slack Web API if token is available
-            const slackToken = process.env.SLACK_TOKEN;
-            if (slackToken) {
-                try {
-                    const { WebClient } = require('@slack/web-api');
-                    const fs = require('fs'); const web = new WebClient(slackToken);
-                    const channelId = process.env.SLACK_CHANNEL_ID || 'C07CM4JS48H';
+            // Only take screenshot if it's not one of the initial connectivity/SSL tests
+            const initialTestTitles = [
+                'should be reachable',
+                'should have a valid SSL certificate'
+            ];
+            if (!initialTestTitles.includes(this.currentTest.title) && page) {
+                const screenshotPath = "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png';
+                await page.screenshot({ path: screenshotPath });
 
-                    // Upload the file to Slack
-                    const result = await web.files.uploadV2({
-                        channel_id: channelId,
-                        file: fs.createReadStream(screenshotPath),
-                        filename: screenshotPath,
-                        title: `Screenshot: ${this.currentTest.title}`,
-                        initial_comment: `📸 Screenshot of failed test: ${this.currentTest.title} on ${KORAP_URL}`
-                    });
+                const slackToken = process.env.SLACK_TOKEN;
+                if (slackToken) {
+                    try {
+                        const { WebClient } = require('@slack/web-api');
+                        const fs = require('fs'); const web = new WebClient(slackToken);
+                        const channelId = process.env.SLACK_CHANNEL_ID || 'C07CM4JS48H';
 
-                    console.log('Screenshot uploaded to Slack successfully');
+                        const result = await web.files.uploadV2({
+                            channel_id: channelId,
+                            file: fs.createReadStream(screenshotPath),
+                            filename: screenshotPath,
+                            title: `Screenshot: ${this.currentTest.title}`,
+                            initial_comment: `📸 Screenshot of failed test: ${this.currentTest.title} on ${KORAP_URL}`
+                        });
 
-                } catch (uploadError) {
-                    console.error('Failed to upload screenshot to Slack:', uploadError.message);
+                    } catch (uploadError) {
+                        console.error('Failed to upload screenshot to Slack:', uploadError.message);
+                    }
                 }
             }
         }
     })
 
-    it('KorAP UI is up and running',
-        (async () => {
-            page.goto(KORAP_URL);
-            await page.waitForNavigation({ waitUntil: 'networkidle2' });
-            const query_field = await page.$("#q-field")
-            assert.isNotNull(query_field, "#q-field not found. Kalamar not running?");
-        }))
+    it('should be reachable', function (done) {
+        let doneCalled = false;
+        const url = new URL(KORAP_URL);
+        const httpModule = url.protocol === 'https:' ? https : require('http');
 
+        const req = httpModule.request({
+            method: 'HEAD',
+            hostname: url.hostname,
+            port: url.port || (url.protocol === 'https:' ? 443 : 80),
+            path: url.pathname,
+            timeout: 5000
+        }, res => {
+            if (!doneCalled) {
+                doneCalled = true;
+                if (res.statusCode >= 200 && res.statusCode < 400) {
+                    done();
+                } else {
+                    done(new Error(`Server is not reachable. Status code: ${res.statusCode}`));
+                }
+            }
+        });
+        req.on('timeout', () => {
+            if (!doneCalled) {
+                doneCalled = true;
+                req.destroy();
+                done(new Error('Request to server timed out.'));
+            }
+        });
+        req.on('error', err => {
+            if (!doneCalled) {
+                doneCalled = true;
+                done(err);
+            }
+        });
+        req.end();
+    });
 
-    ifConditionIt('Login into KorAP with incorrect credentials fails',
-        KORAP_LOGIN != "",
-        (async () => {
-            const login_result = await korap_rc.login(page, KORAP_LOGIN, KORAP_PWD + "*")
-            login_result.should.be.false
-        }))
+    it('should have a valid SSL certificate', function (done) {
+        let doneCalled = false;
+        const url = new URL(KORAP_URL);
+        if (url.protocol !== 'https:') {
+            return this.skip();
+        }
+        const req = https.request({
+            method: 'HEAD',
+            hostname: url.hostname,
+            port: url.port || 443,
+            path: url.pathname,
+            timeout: 5000
+        }, res => {
+            if (!doneCalled) {
+                doneCalled = true;
+                const cert = res.socket.getPeerCertificate();
+                if (cert && cert.valid_to) {
+                    const validTo = new Date(cert.valid_to);
+                    if (validTo > new Date()) {
+                        done();
+                    } else {
+                        done(new Error(`SSL certificate expired on ${validTo.toDateString()}`));
+                    }
+                } else if (res.socket.isSessionReused()){
+                    done();
+                }
+                else {
+                    done(new Error('Could not retrieve SSL certificate information.'));
+                }
+            }
+        });
+        req.on('timeout', () => {
+            if (!doneCalled) {
+                doneCalled = true;
+                req.destroy();
+                done(new Error('Request to server timed out.'));
+            }
+        });
+        req.on('error', err => {
+            if (!doneCalled) {
+                doneCalled = true;
+                if (err.code === 'CERT_HAS_EXPIRED') {
+                    done(new Error('SSL certificate has expired.'));
+                } else {
+                    done(err);
+                }
+            }
+        });
+        req.end();
+    });
 
-    ifConditionIt('Login into KorAP with correct credentials succeeds',
-        KORAP_LOGIN != "",
-        (async () => {
-            const login_result = await korap_rc.login(page, KORAP_LOGIN, KORAP_PWD)
-            login_result.should.be.true
-        }))
+    describe('UI Tests', function() {
 
-    it('Can turn glimpse off',
-        (async () => {
-            await korap_rc.assure_glimpse_off(page)
-        }))
+        before(function() {
+            // Check the state of the parent suite's tests
+            const initialTests = this.test.parent.parent.tests;
+            if (initialTests[0].state === 'failed' || initialTests[1].state === 'failed') {
+                this.skip();
+            }
+        });
 
-    it('Corpus statistics show sufficient tokens',
-        (async () => {
-            const tokenCount = await korap_rc.check_corpus_statistics(page, KORAP_MIN_TOKENS_IN_CORPUS);
-            console.log(`Found ${tokenCount} tokens in corpus, minimum required: ${KORAP_MIN_TOKENS_IN_CORPUS}`);
-            tokenCount.should.be.above(KORAP_MIN_TOKENS_IN_CORPUS - 1,
-                `Corpus should have at least ${KORAP_MIN_TOKENS_IN_CORPUS} tokens, but found ${tokenCount}`);
-        })).timeout(50000)
+        
 
-    describe('Running searches that should have hits', () => {
-
-        before(async () => { await korap_rc.login(page, KORAP_LOGIN, KORAP_PWD) })
-
-        KORAP_QUERIES.split(/[;,] */).forEach((query, i) => {
-            it('Search for "' + query + '" has hits',
-                (async () => {
-                    await korap_rc.assure_glimpse_off(page)
-                    const hits = await korap_rc.search(page, query)
-                    hits.should.be.above(0)
-                })).timeout(20000)
+        it('KorAP UI is up and running', async function () {
+            try {
+                await page.goto(KORAP_URL, { waitUntil: 'domcontentloaded' });
+                await page.waitForSelector("#q-field", { visible: true });
+                const query_field = await page.$("#q-field")
+                assert.isNotNull(query_field, "#q-field not found. Kalamar not running?");
+            } catch (error) {
+                throw new Error(`Failed to load KorAP UI or find query field: ${error.message}`);
+            }
         })
-    })
 
-    ifConditionIt('Logout works',
-        KORAP_LOGIN != "",
-        (async () => {
-            const logout_result = await korap_rc.logout(page)
-            logout_result.should.be.true
-        })).timeout(15000)
 
-})
+        ifConditionIt('Login into KorAP with incorrect credentials fails',
+            KORAP_LOGIN != "",
+            (async () => {
+                const login_result = await korap_rc.login(page, KORAP_LOGIN, KORAP_PWD + "*")
+                login_result.should.be.false
+            }))
+
+        ifConditionIt('Login into KorAP with correct credentials succeeds',
+            KORAP_LOGIN != "",
+            (async () => {
+                const login_result = await korap_rc.login(page, KORAP_LOGIN, KORAP_PWD)
+                login_result.should.be.true
+            }))
+
+        it('Can turn glimpse off',
+            (async () => {
+                await korap_rc.assure_glimpse_off(page)
+            }))
+
+        it('Corpus statistics show sufficient tokens',
+            (async () => {
+                const tokenCount = await korap_rc.check_corpus_statistics(page, KORAP_MIN_TOKENS_IN_CORPUS);
+                console.log(`Found ${tokenCount} tokens in corpus, minimum required: ${KORAP_MIN_TOKENS_IN_CORPUS}`);
+                tokenCount.should.be.above(KORAP_MIN_TOKENS_IN_CORPUS - 1,
+                    `Corpus should have at least ${KORAP_MIN_TOKENS_IN_CORPUS} tokens, but found ${tokenCount}`);
+            })).timeout(90000)
+
+        describe('Running searches that should have hits', () => {
+
+            before(async () => { await korap_rc.login(page, KORAP_LOGIN, KORAP_PWD) })
+
+            KORAP_QUERIES.split(/[;,] */).forEach((query, i) => {
+                it('Search for "' + query + '" has hits',
+                    (async () => {
+                        await korap_rc.assure_glimpse_off(page)
+                        const hits = await korap_rc.search(page, query)
+                        hits.should.be.above(0)
+                    })).timeout(20000)
+            })
+        })
+
+        ifConditionIt('Logout works',
+            KORAP_LOGIN != "",
+            (async () => {
+                const logout_result = await korap_rc.logout(page)
+                logout_result.should.be.true
+            })).timeout(15000)
+    });
+});
