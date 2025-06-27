@@ -122,3 +122,8 @@ config/production.json
 # Backup files
 *.bak
 *.backup
+
+# Chrome
+chrome-headless-shell/
+chrome/
+chromium/
