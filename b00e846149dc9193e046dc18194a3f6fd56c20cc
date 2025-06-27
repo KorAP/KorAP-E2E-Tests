@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f98a3f60_beb25625",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2025-06-27T14:32:14Z",
+      "side": 1,
+      "message": "Gemini CLI\u0027s work, let\u0027s see…",
+      "revId": "b00e846149dc9193e046dc18194a3f6fd56c20cc",
+      "serverId": "626241b7-b7d0-4197-b843-1ee23887649c"
+    }
+  ]
+}
