@@ -18,7 +18,7 @@
   "author": "Marc Kupietz",
   "license": "APACHE-2.0",
   "dependencies": {
-    "@slack/web-api": "^7.3.4",
+    "@slack/web-api": "^7.10.0",
     "chai": "^6.0.0",
     "form-data": "^4.0.4",
     "mocha": "^11.7.1",
