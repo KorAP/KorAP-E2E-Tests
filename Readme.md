@@ -34,6 +34,9 @@ KORAP_URL="http://localhost:64543" KORAP_USERNAME="user2" KORAP_PASSWORD="passwo
 | `SLACK_WEBHOOK_URL` | _(none)_ | Slack webhook URL for test failure notifications (text only) |
 | `SLACK_TOKEN` | _(none)_ | Slack bot token for uploading failure screenshots |
 | `SLACK_CHANNEL_ID` | `C07CM4JS48H` | Slack channel ID for screenshot uploads (e.g., `C1234567890`) |
+| `NC_TALK_URL` | `https://cloud.ids-mannheim.de` | Nextcloud instance URL for Talk notifications |
+| `NC_TALK_CONVERSATION` | _(none)_ | Nextcloud Talk conversation token for notifications |
+| `NC_TALK_SECRET` | _(none)_ | Nextcloud Talk bot secret for authentication |
 | `LC_ALL` | _(system default)_ | Locale setting (recommended: `C` for consistent results) |
 
 ### Usage Notes
@@ -54,8 +57,30 @@ Quick setup:
 
 ### Notifications
 
+#### Slack Notifications
+
 If you run KorAP-E2E-tests as a cronjob or in scheduled pipelines and
-want to get notified about failed tests via slack, set the environment variable `SLACK_WEBHOOK_URL` to the URL of your [slack webhook](https://api.slack.com/messaging/webhooks).
+want to get notified about failed tests via Slack, set the environment variable `SLACK_WEBHOOK_URL` to the URL of your [Slack webhook](https://api.slack.com/messaging/webhooks).
+
+For screenshot uploads, also set:
+
+- `SLACK_TOKEN`: Your Slack bot token (starts with `xoxb-`)
+- `SLACK_CHANNEL_ID`: The channel ID where screenshots should be posted (e.g., `C07CM4JS48H`)
+
+**Note**: The bot must be invited to the channel, and needs the following permissions:
+
+- `chat:write`
+- `files:write`
+
+#### Nextcloud Talk Notifications
+
+To receive test failure notifications in Nextcloud Talk, set these environment variables:
+
+- `NC_TALK_URL`: Your Nextcloud instance URL (default: `https://cloud.ids-mannheim.de`)
+- `NC_TALK_CONVERSATION`: The conversation/room token (e.g., `o6toyqx7`)
+- `NC_TALK_SECRET`: The bot secret for authentication
+
+The bot must be configured in your Nextcloud Talk settings with the appropriate secret.
 
 
 ## Development and License

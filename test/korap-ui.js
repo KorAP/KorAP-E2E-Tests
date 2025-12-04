@@ -1,4 +1,5 @@
 const https = require('https');
+const crypto = require('crypto');
 const puppeteer = require('puppeteer-extra');
 puppeteer.use(require('puppeteer-extra-plugin-user-preferences')({
     userPrefs: {
@@ -22,9 +23,51 @@ const KORAP_MIN_TOKENS_IN_CORPUS = parseInt(process.env.KORAP_MIN_TOKENS_IN_CORP
 const korap_rc = require('../lib/korap_rc.js').new(KORAP_URL)
 
 const slack_webhook = process.env.SLACK_WEBHOOK_URL;
+const nc_talk_url = process.env.NC_TALK_URL || 'https://cloud.ids-mannheim.de';
+const nc_talk_conversation = process.env.NC_TALK_CONVERSATION;
+const nc_talk_secret = process.env.NC_TALK_SECRET;
 
 if (slack_webhook) {
     slack = require('slack-notify')(slack_webhook);
+}
+
+// Function to send message to Nextcloud Talk
+async function sendToNextcloudTalk(message, silent = false) {
+    if (!nc_talk_conversation || !nc_talk_secret) {
+        return;
+    }
+
+    try {
+        const axios = require('axios');
+        
+        // Generate random header and signature
+        const randomHeader = crypto.randomBytes(32).toString('hex');
+        const messageToSign = randomHeader + message;
+        const signature = crypto.createHmac('sha256', nc_talk_secret)
+            .update(messageToSign)
+            .digest('hex');
+
+        // Send the message
+        await axios.post(
+            `${nc_talk_url}/ocs/v2.php/apps/spreed/api/v1/bot/${nc_talk_conversation}/message`,
+            {
+                message: message,
+                silent: silent
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'OCS-APIRequest': 'true',
+                    'X-Nextcloud-Talk-Bot-Random': randomHeader,
+                    'X-Nextcloud-Talk-Bot-Signature': signature
+                }
+            }
+        );
+        console.log('Message sent to Nextcloud Talk successfully');
+    } catch (error) {
+        console.error('Failed to send message to Nextcloud Talk:', error.message);
+    }
 }
 
 function ifConditionIt(title, condition, test) {
@@ -86,6 +129,16 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                     });
                 } catch (slackError) {
                     console.error('Failed to send notification to Slack:', slackError.message);
+                }
+            }
+
+            // Send notification to Nextcloud Talk
+            if (nc_talk_conversation && nc_talk_secret) {
+                try {
+                    const message = `🚨 Test on ${KORAP_URL} failed: **${this.currentTest.title}**`;
+                    await sendToNextcloudTalk(message);
+                } catch (ncError) {
+                    console.error('Failed to send notification to Nextcloud Talk:', ncError.message);
                 }
             }
 
