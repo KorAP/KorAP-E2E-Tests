@@ -32,17 +32,52 @@ if (slack_webhook) {
 }
 
 // Function to send message to Nextcloud Talk
-async function sendToNextcloudTalk(message, silent = false) {
+async function sendToNextcloudTalk(message, silent = false, screenshotPath = null) {
     if (!nc_talk_conversation || !nc_talk_secret) {
         return;
     }
 
     try {
         const axios = require('axios');
+        const fs = require('fs');
+        const sharp = require('sharp');
+        
+        let fullMessage = message;
+        const MAX_MESSAGE_LENGTH = 32000; // Nextcloud Talk message size limit
+        
+        // If a screenshot path is provided, try to embed it
+        if (screenshotPath && fs.existsSync(screenshotPath)) {
+            try {
+                // First, try to resize the image to reduce size
+                const resizedBuffer = await sharp(screenshotPath)
+                    .resize(800, null, { // Resize to max width of 800px, maintain aspect ratio
+                        withoutEnlargement: true,
+                        fit: 'inside'
+                    })
+                    .png({ quality: 80, compressionLevel: 9 })
+                    .toBuffer();
+                
+                const base64Image = resizedBuffer.toString('base64');
+                const dataUri = `data:image/png;base64,${base64Image}`;
+                const messageWithImage = `${message}\n\n![Screenshot](${dataUri})`;
+                
+                // Check if the message with image fits within the limit
+                if (messageWithImage.length <= MAX_MESSAGE_LENGTH) {
+                    fullMessage = messageWithImage;
+                    console.log(`Screenshot will be embedded (message size: ${messageWithImage.length} chars)`);
+                } else {
+                    console.log(`Screenshot too large (${messageWithImage.length} chars), sending text-only notification`);
+                    fullMessage = `${message}\n\n_Screenshot available locally but too large to embed (${Math.round(messageWithImage.length / 1024)}KB)_`;
+                }
+            } catch (imageError) {
+                console.error('Failed to process screenshot for Nextcloud Talk:', imageError.message);
+                fullMessage = `${message}\n\n_Screenshot available locally but could not be processed_`;
+            }
+        }
         
         // Generate random header and signature
         const randomHeader = crypto.randomBytes(32).toString('hex');
-        const messageToSign = randomHeader + message;
+        const messageToSign = randomHeader + fullMessage;
         const signature = crypto.createHmac('sha256', nc_talk_secret)
             .update(messageToSign)
             .digest('hex');
@@ -51,7 +86,7 @@ async function sendToNextcloudTalk(message, silent = false) {
         await axios.post(
             `${nc_talk_url}/ocs/v2.php/apps/spreed/api/v1/bot/${nc_talk_conversation}/message`,
             {
-                message: message,
+                message: fullMessage,
                 silent: silent
             },
             {
@@ -110,6 +145,19 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
     afterEach(async function () {
         if (this.currentTest.state == "failed") {
+            // Only take screenshot if it's not one of the initial connectivity/SSL tests
+            const initialTestTitles = [
+                'should be reachable',
+                'should have a valid SSL certificate'
+            ];
+            let screenshotPath = null;
+            
+            if (!initialTestTitles.includes(this.currentTest.title) && page) {
+                screenshotPath = "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png';
+                await page.screenshot({ path: screenshotPath });
+            }
+
+            // Send notification to Slack
             if (slack) {
                 try {
                     slack.alert({
@@ -132,30 +180,14 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                 }
             }
 
-            // Send notification to Nextcloud Talk
-            if (nc_talk_conversation && nc_talk_secret) {
-                try {
-                    const message = `🚨 Test on ${KORAP_URL} failed: **${this.currentTest.title}**`;
-                    await sendToNextcloudTalk(message);
-                } catch (ncError) {
-                    console.error('Failed to send notification to Nextcloud Talk:', ncError.message);
-                }
-            }
-
-            // Only take screenshot if it's not one of the initial connectivity/SSL tests
-            const initialTestTitles = [
-                'should be reachable',
-                'should have a valid SSL certificate'
-            ];
-            if (!initialTestTitles.includes(this.currentTest.title) && page) {
-                const screenshotPath = "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png';
-                await page.screenshot({ path: screenshotPath });
-
+            // Upload screenshot to Slack if available
+            if (screenshotPath) {
                 const slackToken = process.env.SLACK_TOKEN;
                 if (slackToken) {
                     try {
                         const { WebClient } = require('@slack/web-api');
-                        const fs = require('fs'); const web = new WebClient(slackToken);
+                        const fs = require('fs'); 
+                        const web = new WebClient(slackToken);
                         const channelId = process.env.SLACK_CHANNEL_ID || 'C07CM4JS48H';
 
                         const result = await web.files.uploadV2({
@@ -169,6 +201,16 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                     } catch (uploadError) {
                         console.error('Failed to upload screenshot to Slack:', uploadError.message);
                     }
+                }
+            }
+
+            // Send notification to Nextcloud Talk with screenshot
+            if (nc_talk_conversation && nc_talk_secret) {
+                try {
+                    const message = `🚨 Test on ${KORAP_URL} failed: **${this.currentTest.title}**`;
+                    await sendToNextcloudTalk(message, false, screenshotPath);
+                } catch (ncError) {
+                    console.error('Failed to send notification to Nextcloud Talk:', ncError.message);
                 }
             }
         }

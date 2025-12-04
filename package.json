@@ -27,6 +27,7 @@
     "puppeteer": "^24.32.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-user-preferences": "^2.4.1",
+    "sharp": "^0.33.0",
     "slack-notify": "^2.0.7"
   }
 }
