@@ -37,6 +37,7 @@ KORAP_URL="http://localhost:64543" KORAP_USERNAME="user2" KORAP_PASSWORD="passwo
 | `NC_TALK_URL` | `https://cloud.ids-mannheim.de` | Nextcloud instance URL for Talk notifications |
 | `NC_TALK_CONVERSATION` | _(none)_ | Nextcloud Talk conversation token for notifications |
 | `NC_TALK_SECRET` | _(none)_ | Nextcloud Talk bot secret for authentication |
+| `NOTIFY_ON_SUCCESS` | `false` | When `true` or `1`, send notifications when tests **pass** instead of when they fail |
 | `LC_ALL` | _(system default)_ | Locale setting (recommended: `C` for consistent results) |
 
 ### Usage Notes

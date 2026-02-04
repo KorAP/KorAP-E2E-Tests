@@ -20,6 +20,7 @@ const KORAP_LOGIN = 'KORAP_USERNAME' in process.env ? process.env.KORAP_USERNAME
 const KORAP_PWD = process.env.KORAP_PWD || process.env.KORAP_PASSWORD || "password2";
 const KORAP_QUERIES = process.env.KORAP_QUERIES || 'geht, [orth=geht & cmc/pos=VVFIN]'
 const KORAP_MIN_TOKENS_IN_CORPUS = parseInt(process.env.KORAP_MIN_TOKENS_IN_CORPUS || "100000", 10);
+const NOTIFY_ON_SUCCESS = process.env.NOTIFY_ON_SUCCESS === 'true' || process.env.NOTIFY_ON_SUCCESS === '1';
 const korap_rc = require('../lib/korap_rc.js').new(KORAP_URL)
 const { sendToNextcloudTalk, ifConditionIt } = require('../lib/utils.js');
 
@@ -66,7 +67,13 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
     })
 
     afterEach(async function () {
-        if (this.currentTest.state == "failed") {
+        const testPassed = this.currentTest.state === "passed";
+        const testFailed = this.currentTest.state === "failed";
+        
+        // Determine if we should send notification based on NOTIFY_ON_SUCCESS setting
+        const shouldNotify = NOTIFY_ON_SUCCESS ? testPassed : testFailed;
+        
+        if (shouldNotify) {
             // Only take screenshot if it's not one of the initial connectivity/SSL tests
             const initialTestTitles = [
                 'should be reachable',
@@ -74,20 +81,26 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
             ];
             let screenshotPath = null;
             
-            if (!initialTestTitles.includes(this.currentTest.title) && page) {
+            // Only take screenshots for failures (not for success notifications)
+            if (testFailed && !initialTestTitles.includes(this.currentTest.title) && page) {
                 screenshotPath = "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png';
                 await page.screenshot({ path: screenshotPath });
             }
+
+            // Prepare notification content based on success/failure
+            const emoji = testPassed ? '✅' : '🚨';
+            const status = testPassed ? 'passed' : 'failed';
+            const color = testPassed ? 'good' : 'danger';
 
             // Send notification to Slack
             if (slack) {
                 try {
                     slack.alert({
-                        text: `🚨 Test on ${KORAP_URL} failed: *${this.currentTest.title}*`,
+                        text: `${emoji} Test on ${KORAP_URL} ${status}: *${this.currentTest.title}*`,
                         attachments: [{
-                            color: 'danger',
+                            color: color,
                             fields: [{
-                                title: 'Failed Test',
+                                title: testPassed ? 'Passed Test' : 'Failed Test',
                                 value: this.currentTest.title,
                                 short: false
                             }, {
@@ -102,7 +115,7 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                 }
             }
 
-            // Upload screenshot to Slack if available
+            // Upload screenshot to Slack if available (only for failures)
             if (screenshotPath) {
                 const slackToken = process.env.SLACK_TOKEN;
                 if (slackToken) {
@@ -126,9 +139,9 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                 }
             }
 
-            // Send notification to Nextcloud Talk with screenshot
+            // Send notification to Nextcloud Talk with screenshot (if available)
             try {
-                const message = `🚨 Test on ${KORAP_URL} failed: **${this.currentTest.title}**`;
+                const message = `${emoji} Test on ${KORAP_URL} ${status}: **${this.currentTest.title}**`;
                 await sendToNextcloudTalk(message, false, screenshotPath);
             } catch (ncError) {
                 console.error('Failed to send notification to Nextcloud Talk:', ncError.message);
