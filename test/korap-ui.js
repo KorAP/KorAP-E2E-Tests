@@ -21,6 +21,7 @@ const KORAP_PWD = process.env.KORAP_PWD || process.env.KORAP_PASSWORD || "passwo
 const KORAP_QUERIES = process.env.KORAP_QUERIES || 'geht, [orth=geht & cmc/pos=VVFIN]'
 const KORAP_MIN_TOKENS_IN_CORPUS = parseInt(process.env.KORAP_MIN_TOKENS_IN_CORPUS || "100000", 10);
 const NOTIFY_ON_SUCCESS = process.env.NOTIFY_ON_SUCCESS === 'true' || process.env.NOTIFY_ON_SUCCESS === '1';
+const KORAP_HEADLESS = !(process.env.KORAP_HEADLESS === 'false' || process.env.KORAP_HEADLESS === '0');
 const korap_rc = require('../lib/korap_rc.js').new(KORAP_URL)
 const { sendToNextcloudTalk, ifConditionIt } = require('../lib/utils.js');
 
@@ -40,7 +41,7 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
     before(async () => {
         browser = await puppeteer.launch({
-            headless: "shell",
+            headless: KORAP_HEADLESS ? "shell" : false,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',

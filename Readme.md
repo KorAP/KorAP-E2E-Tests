@@ -31,6 +31,7 @@ KORAP_URL="http://localhost:64543" KORAP_USERNAME="user2" KORAP_PASSWORD="passwo
 | `KORAP_PASSWORD` | `password2` | Password for KorAP login (also accepts legacy `KORAP_PWD`) |
 | `KORAP_QUERIES` | `geht, [orth=geht & cmc/pos=VVFIN]` | Comma-separated list of queries to test |
 | `KORAP_MIN_TOKENS_IN_CORPUS` | `100000` | Minimum expected number of tokens for corpus statistics test |
+| `KORAP_HEADLESS` | `true` | Set to `false` or `0` to run browser in UI mode (visible window) instead of headless |
 | `SLACK_WEBHOOK_URL` | _(none)_ | Slack webhook URL for test failure notifications (text only) |
 | `SLACK_TOKEN` | _(none)_ | Slack bot token for uploading failure screenshots |
 | `SLACK_CHANNEL_ID` | `C07CM4JS48H` | Slack channel ID for screenshot uploads (e.g., `C1234567890`) |
@@ -45,6 +46,7 @@ KORAP_URL="http://localhost:64543" KORAP_USERNAME="user2" KORAP_PASSWORD="passwo
 - Use `KORAP_USERNAME="" npm test` to skip login and logout tests, e.g. to run tests against Kustvakt-lite
 - The tests support both new variable names (`KORAP_USERNAME`, `KORAP_PASSWORD`) and legacy names (`KORAP_LOGIN`, `KORAP_PWD`) for backward compatibility
 - Set `LC_ALL=C` for consistent locale-independent test results
+- Use `KORAP_HEADLESS=false npm test` to run with a visible browser window for debugging
 
 ## GitLab CI/CD
 
