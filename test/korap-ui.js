@@ -40,25 +40,65 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
     
 
     before(async () => {
-        browser = await puppeteer.launch({
-            headless: KORAP_HEADLESS ? "shell" : false,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--disable-gpu'
-            ]
-        })
-        page = await browser.newPage()
-        await page.setViewport({
-            width: 1980,
-            height: 768,
-            deviceScaleFactor: 1,
-        });
-        
+        try {
+            browser = await puppeteer.launch({
+                headless: KORAP_HEADLESS ? "shell" : false,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--disable-gpu'
+                ]
+            })
+            page = await browser.newPage()
+            await page.setViewport({
+                width: 1980,
+                height: 768,
+                deviceScaleFactor: 1,
+            });
+        } catch (error) {
+            console.error('Failed to initialize Puppeteer browser:', error.message);
+            
+            // Send failure notification
+            const emoji = '🚨';
+            const message = `${emoji} Test setup on ${KORAP_URL} failed: **${error.message}**`;
+
+            // Send notification to Slack
+            if (slack) {
+                try {
+                    slack.alert({
+                        text: `${emoji} Test setup on ${KORAP_URL} failed`,
+                        attachments: [{
+                            color: 'danger',
+                            fields: [{
+                                title: 'Error Details',
+                                value: error.message,
+                                short: false
+                            }, {
+                                title: 'URL',
+                                value: KORAP_URL,
+                                short: true
+                            }]
+                        }]
+                    });
+                } catch (slackError) {
+                    console.error('Failed to send setup error to Slack:', slackError.message);
+                }
+            }
+
+            // Send notification to Nextcloud Talk
+            try {
+                await sendToNextcloudTalk(message, false);
+            } catch (ncError) {
+                console.error('Failed to send setup error to Nextcloud Talk:', ncError.message);
+            }
+
+            // Rethrow the error so that the test run is registered as failed
+            throw error;
+        }
     })
 
     after(async function() {
