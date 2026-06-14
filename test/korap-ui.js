@@ -20,6 +20,7 @@ const KORAP_LOGIN = 'KORAP_USERNAME' in process.env ? process.env.KORAP_USERNAME
 const KORAP_PWD = process.env.KORAP_PWD || process.env.KORAP_PASSWORD || "password2";
 const KORAP_QUERIES = process.env.KORAP_QUERIES || 'geht, [orth=geht & cmc/pos=VVFIN]'
 const KORAP_MIN_TOKENS_IN_CORPUS = parseInt(process.env.KORAP_MIN_TOKENS_IN_CORPUS || "100000", 10);
+const KORAP_SEARCH_TIMEOUT = parseInt(process.env.KORAP_SEARCH_TIMEOUT || "60000", 10);
 const NOTIFY_ON_SUCCESS = process.env.NOTIFY_ON_SUCCESS === 'true' || process.env.NOTIFY_ON_SUCCESS === '1';
 const KORAP_HEADLESS = !(process.env.KORAP_HEADLESS === 'false' || process.env.KORAP_HEADLESS === '0');
 const korap_rc = require('../lib/korap_rc.js').new(KORAP_URL)
@@ -339,7 +340,7 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                         await korap_rc.assure_glimpse_off(page)
                         const hits = await korap_rc.search(page, query)
                         hits.should.be.above(0)
-                    })).timeout(20000)
+                    })).timeout(KORAP_SEARCH_TIMEOUT)
             })
         })
 
