@@ -21,6 +21,7 @@ const KORAP_PWD = process.env.KORAP_PWD || process.env.KORAP_PASSWORD || "passwo
 const KORAP_QUERIES = process.env.KORAP_QUERIES || 'geht, [orth=geht & cmc/pos=VVFIN]'
 const KORAP_MIN_TOKENS_IN_CORPUS = parseInt(process.env.KORAP_MIN_TOKENS_IN_CORPUS || "100000", 10);
 const KORAP_SEARCH_TIMEOUT = parseInt(process.env.KORAP_SEARCH_TIMEOUT || "60000", 10);
+const KORAP_VC = process.env.KORAP_VC || process.env.VC || "";
 const NOTIFY_ON_SUCCESS = process.env.NOTIFY_ON_SUCCESS === 'true' || process.env.NOTIFY_ON_SUCCESS === '1';
 const KORAP_HEADLESS = !(process.env.KORAP_HEADLESS === 'false' || process.env.KORAP_HEADLESS === '0');
 const korap_rc = require('../lib/korap_rc.js').new(KORAP_URL)
@@ -332,23 +333,40 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
         describe('Running searches that should have hits', () => {
 
-            before(async () => { await korap_rc.login(page, KORAP_LOGIN, KORAP_PWD) })
+            // The searches must run while logged in — most corpora are only
+            // available after authentication. Re-assert the session here and,
+            // when a login is required, fail loudly if it didn't take instead
+            // of silently testing the (tiny) public corpus logged out.
+            before(async () => {
+                const logged_in = await korap_rc.login(page, KORAP_LOGIN, KORAP_PWD)
+                if (KORAP_LOGIN != "") {
+                    assert.isTrue(logged_in,
+                        "Login is required for the has-hits searches but did not succeed; aborting so we don't test the public corpus while logged out")
+                }
+            })
 
             KORAP_QUERIES.split(/[;,] */).forEach((query, i) => {
                 it('Search for "' + query + '" has hits',
                     (async () => {
                         await korap_rc.assure_glimpse_off(page)
-                        const hits = await korap_rc.search(page, query)
+                        const hits = await korap_rc.search(page, query, { timeout: KORAP_SEARCH_TIMEOUT, vc: KORAP_VC })
                         hits.should.be.above(0)
-                    })).timeout(KORAP_SEARCH_TIMEOUT)
+                    })).timeout(KORAP_SEARCH_TIMEOUT + 30000)
             })
         })
 
-        ifConditionIt('Logout works',
-            KORAP_LOGIN != "",
-            (async () => {
-                const logout_result = await korap_rc.logout(page)
-                logout_result.should.be.true
-            })).timeout(15000)
+        // Logout must be the LAST UI test. Mocha runs a suite's direct it()
+        // tests before its nested describe() suites, so a top-level "Logout"
+        // test would otherwise run *before* the searches above and log us out,
+        // leaving them to query the public corpus. Wrapping it in its own suite
+        // declared after the searches suite guarantees it runs last.
+        describe('Logging out', () => {
+            ifConditionIt('Logout works',
+                KORAP_LOGIN != "",
+                (async () => {
+                    const logout_result = await korap_rc.logout(page)
+                    logout_result.should.be.true
+                })).timeout(15000)
+        })
     });
 });

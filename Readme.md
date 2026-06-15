@@ -31,7 +31,8 @@ KORAP_URL="http://localhost:64543" KORAP_USERNAME="user2" KORAP_PASSWORD="passwo
 | `KORAP_PASSWORD` | `password2` | Password for KorAP login (also accepts legacy `KORAP_PWD`) |
 | `KORAP_QUERIES` | `geht, [orth=geht & cmc/pos=VVFIN]` | Comma-separated list of queries to test |
 | `KORAP_MIN_TOKENS_IN_CORPUS` | `100000` | Minimum expected number of tokens for corpus statistics test |
-| `KORAP_SEARCH_TIMEOUT` | `60000` | Per-query timeout in ms for the "has hits" search tests. Raise it for slow/complex queries on very large corpora to avoid false-positive timeout failures |
+| `KORAP_SEARCH_TIMEOUT` | `60000` | Per-query timeout in ms for the "has hits" search tests. Applies to the actual page navigation/result wait, so raising it genuinely helps slow/complex queries on very large corpora avoid false-positive timeout failures |
+| `KORAP_VC` | _(none)_ | Optional virtual corpus restriction applied to the "has hits" searches, passed as the corpus query (`cq`). E.g. `KORAP_VC="pubDate in 2020"`. Narrowing the corpus keeps complex queries fast enough to finish within the timeout (also accepts `VC`) |
 | `KORAP_HEADLESS` | `true` | Set to `false` or `0` to run browser in UI mode (visible window) instead of headless |
 | `SLACK_WEBHOOK_URL` | _(none)_ | Slack webhook URL for test failure notifications (text only) |
 | `SLACK_TOKEN` | _(none)_ | Slack bot token for uploading failure screenshots |
