@@ -61,6 +61,8 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                 height: 768,
                 deviceScaleFactor: 1,
             });
+            console.log(`Run started ${new Date().toISOString()} on ${KORAP_URL}` +
+                (KORAP_VC ? ` (virtual corpus: ${KORAP_VC})` : ''));
         } catch (error) {
             console.error('Failed to initialize Puppeteer browser:', error.message);
             
@@ -134,12 +136,25 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
             const emoji = testPassed ? '✅' : '🚨';
             const status = testPassed ? 'passed' : 'failed';
             const color = testPassed ? 'good' : 'danger';
+            const timestamp = new Date().toISOString();
+
+            // Capture the actual page URL (e.g. the full search results URL with
+            // query and cq) so issues can be reproduced/traced immediately. Fall
+            // back to the instance URL for tests that never navigated (about:blank).
+            let currentUrl = KORAP_URL;
+            try {
+                const u = page && typeof page.url === 'function' ? page.url() : '';
+                if (/^https?:/.test(u)) currentUrl = u;
+            } catch (e) { /* keep KORAP_URL */ }
+
+            // Echo the result with its URL to the console log as well.
+            console.log(`${emoji} [${timestamp}] ${status}: ${this.currentTest.title} — ${currentUrl}`);
 
             // Send notification to Slack
             if (slack) {
                 try {
                     slack.alert({
-                        text: `${emoji} Test on ${KORAP_URL} ${status}: *${this.currentTest.title}*`,
+                        text: `${emoji} [${timestamp}] Test on ${KORAP_URL} ${status}: *${this.currentTest.title}*`,
                         attachments: [{
                             color: color,
                             fields: [{
@@ -148,8 +163,8 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                                 short: false
                             }, {
                                 title: 'URL',
-                                value: KORAP_URL,
-                                short: true
+                                value: currentUrl,
+                                short: false
                             }]
                         }]
                     });
@@ -184,7 +199,7 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
             // Send notification to Nextcloud Talk with screenshot (if available)
             try {
-                const message = `${emoji} Test on ${KORAP_URL} ${status}: **${this.currentTest.title}**`;
+                const message = `${emoji} [${timestamp}] Test on ${KORAP_URL} ${status}: **${this.currentTest.title}**\n${currentUrl}`;
                 await sendToNextcloudTalk(message, false, screenshotPath);
             } catch (ncError) {
                 console.error('Failed to send notification to Nextcloud Talk:', ncError.message);
@@ -345,8 +360,9 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                 }
             })
 
+            const vcLabel = KORAP_VC ? ` in vc "${KORAP_VC}"` : '';
             KORAP_QUERIES.split(/[;,] */).forEach((query, i) => {
-                it('Search for "' + query + '" has hits',
+                it('Search for "' + query + '"' + vcLabel + ' has hits',
                     (async () => {
                         await korap_rc.assure_glimpse_off(page)
                         const hits = await korap_rc.search(page, query, { timeout: KORAP_SEARCH_TIMEOUT, vc: KORAP_VC })
