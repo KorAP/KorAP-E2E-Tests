@@ -23,6 +23,7 @@ const KORAP_MIN_TOKENS_IN_CORPUS = parseInt(process.env.KORAP_MIN_TOKENS_IN_CORP
 const KORAP_SEARCH_TIMEOUT = parseInt(process.env.KORAP_SEARCH_TIMEOUT || "60000", 10);
 const KORAP_VC = process.env.KORAP_VC || process.env.VC || "";
 const NOTIFY_ON_SUCCESS = process.env.NOTIFY_ON_SUCCESS === 'true' || process.env.NOTIFY_ON_SUCCESS === '1';
+const KORAP_DISABLE_GLIMPSE = process.env.KORAP_DISABLE_GLIMPSE === 'true' || process.env.KORAP_DISABLE_GLIMPSE === '1';
 const KORAP_HEADLESS = !(process.env.KORAP_HEADLESS === 'false' || process.env.KORAP_HEADLESS === '0');
 const korap_rc = require('../lib/korap_rc.js').new(KORAP_URL)
 const { sendToNextcloudTalk, ifConditionIt } = require('../lib/utils.js');
@@ -333,11 +334,6 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                 login_result.should.be.true
             }))
 
-        it('Can turn glimpse off',
-            (async () => {
-                await korap_rc.assure_glimpse_off(page)
-            }))
-
         it('Corpus statistics show sufficient tokens',
             (async () => {
                 const tokenCount = await korap_rc.check_corpus_statistics(page, KORAP_MIN_TOKENS_IN_CORPUS);
@@ -364,7 +360,12 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
             KORAP_QUERIES.split(/[;,] */).forEach((query, i) => {
                 it('Search for "' + query + '"' + vcLabel + ' has hits',
                     (async () => {
-                        await korap_rc.assure_glimpse_off(page)
+                        // Leave glimpse (cutoff) on by default to reduce server load; it
+                        // still proves the server is up. Set KORAP_DISABLE_GLIMPSE=true
+                        // to force full (uncapped) result counts if needed.
+                        if (KORAP_DISABLE_GLIMPSE) {
+                            await korap_rc.assure_glimpse_off(page)
+                        }
                         const hits = await korap_rc.search(page, query, { timeout: KORAP_SEARCH_TIMEOUT, vc: KORAP_VC })
                         hits.should.be.above(0)
                     })).timeout(KORAP_SEARCH_TIMEOUT + 30000)
