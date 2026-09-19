@@ -1,4 +1,7 @@
 const https = require('https');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 const puppeteer = require('puppeteer-extra');
 puppeteer.use(require('puppeteer-extra-plugin-user-preferences')({
@@ -25,6 +28,12 @@ const KORAP_VC = process.env.KORAP_VC || process.env.VC || "";
 const NOTIFY_ON_SUCCESS = process.env.NOTIFY_ON_SUCCESS === 'true' || process.env.NOTIFY_ON_SUCCESS === '1';
 const KORAP_DISABLE_GLIMPSE = process.env.KORAP_DISABLE_GLIMPSE === 'true' || process.env.KORAP_DISABLE_GLIMPSE === '1';
 const KORAP_HEADLESS = !(process.env.KORAP_HEADLESS === 'false' || process.env.KORAP_HEADLESS === '0');
+// The export/download tests are comparatively expensive for the server, so
+// they are opt-in (e.g. for a nightly run) and reported as skipped otherwise.
+const KORAP_TEST_DOWNLOADS = process.env.KORAP_TEST_DOWNLOADS === 'true' || process.env.KORAP_TEST_DOWNLOADS === '1';
+const KORAP_DOWNLOAD_HITC = parseInt(process.env.KORAP_DOWNLOAD_HITC || "10", 10);
+const KORAP_DOWNLOAD_TIMEOUT = parseInt(process.env.KORAP_DOWNLOAD_TIMEOUT || "120000", 10);
+const KORAP_DOWNLOAD_QUERY = process.env.KORAP_DOWNLOAD_QUERY || KORAP_QUERIES.split(/[;,] */)[0];
 const korap_rc = require('../lib/korap_rc.js').new(KORAP_URL)
 const { sendToNextcloudTalk, ifConditionIt } = require('../lib/utils.js');
 
@@ -40,7 +49,9 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
 
     let browser;
     let page;
-    
+    // Tests that run in their own browser context (e.g. the download tests)
+    // point this at their page so failure screenshots show the right window.
+    let screenshotPage = null;
 
     before(async () => {
         try {
@@ -128,9 +139,10 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
             let screenshotPath = null;
             
             // Only take screenshots for failures (not for success notifications)
-            if (testFailed && !initialTestTitles.includes(this.currentTest.title) && page) {
+            const shotPage = screenshotPage || page;
+            if (testFailed && !initialTestTitles.includes(this.currentTest.title) && shotPage) {
                 screenshotPath = "failed_" + this.currentTest.title.replaceAll(/[ &\/]/g, "_") + '.png';
-                await page.screenshot({ path: screenshotPath });
+                await shotPage.screenshot({ path: screenshotPath });
             }
 
             // Prepare notification content based on success/failure
@@ -144,7 +156,7 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
             // back to the instance URL for tests that never navigated (about:blank).
             let currentUrl = KORAP_URL;
             try {
-                const u = page && typeof page.url === 'function' ? page.url() : '';
+                const u = shotPage && typeof shotPage.url === 'function' ? shotPage.url() : '';
                 if (/^https?:/.test(u)) currentUrl = u;
             } catch (e) { /* keep KORAP_URL */ }
 
@@ -371,6 +383,78 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
                     })).timeout(KORAP_SEARCH_TIMEOUT + 30000)
             })
         })
+
+        // Export/download test. It runs logged in when credentials are given
+        // and logged out otherwise (KORAP_USERNAME=""), since the two cases
+        // typically need different virtual corpora and are therefore run
+        // separately. It uses its own browser context: that gives it a
+        // private download directory and, in the logged-out case, a
+        // genuinely session-free browser without touching the main page's
+        // login (and the logout ordering below). Opt-in via
+        // KORAP_TEST_DOWNLOADS because exports are expensive for the server.
+        describe('Downloads via export plugin', () => {
+            const loggedIn = KORAP_LOGIN != "";
+            const modeLabel = loggedIn ? 'when logged in' : 'when not logged in';
+            let context = null;
+            let contextPage = null;
+            let downloadDir = null;
+
+            before(async function () {
+                if (!KORAP_TEST_DOWNLOADS) return;
+                downloadDir = fs.mkdtempSync(path.join(os.tmpdir(), 'korap-e2e-download-'));
+                context = await browser.createBrowserContext({
+                    downloadBehavior: { policy: 'allow', downloadPath: downloadDir }
+                });
+                contextPage = await context.newPage();
+                await contextPage.setViewport({ width: 1980, height: 768, deviceScaleFactor: 1 });
+                screenshotPage = contextPage;
+
+                if (loggedIn) {
+                    const logged_in = await korap_rc.login(contextPage, KORAP_LOGIN, KORAP_PWD);
+                    assert.isTrue(logged_in, "Login is required for the logged-in download test but did not succeed");
+                } else {
+                    await contextPage.goto(KORAP_URL, { waitUntil: 'domcontentloaded' });
+                    const profile = await contextPage.$('.dropdown-btn.profile, a.logout');
+                    assert.isNull(profile, "Fresh browser context is unexpectedly logged in");
+                }
+            });
+
+            after(async () => {
+                screenshotPage = null;
+                if (context) await context.close().catch(() => {});
+                if (downloadDir) fs.rmSync(downloadDir, { recursive: true, force: true });
+            });
+
+            const vcLabel = KORAP_VC ? ` in vc "${KORAP_VC}"` : '';
+            ifConditionIt(`Export of ${KORAP_DOWNLOAD_HITC} hits for "${KORAP_DOWNLOAD_QUERY}"${vcLabel} as CSV works ${modeLabel}`,
+                KORAP_TEST_DOWNLOADS,
+                (async () => {
+                    const result = await korap_rc.export_hits(contextPage, {
+                        query: KORAP_DOWNLOAD_QUERY,
+                        format: 'csv',
+                        hitc: KORAP_DOWNLOAD_HITC,
+                        timeout: KORAP_DOWNLOAD_TIMEOUT,
+                        downloadDir,
+                        vc: KORAP_VC
+                    });
+                    result.content.should.be.a('string');
+                    result.content.length.should.be.above(0, 'downloaded CSV is empty');
+                    result.file.should.match(/\.csv$/i);
+
+                    const header = result.content.split(/\r?\n/, 1)[0];
+                    header.should.match(/\bMatch\b/, `unexpected CSV header: ${header}`);
+                    header.should.match(/\btextSigle\b/, `unexpected CSV header: ${header}`);
+
+                    // With glimpse on, result.hits may be just the listed
+                    // page, so only require what we know must be there.
+                    const dataRows = korap_rc.constructor.count_csv_records(result.content) - 1;
+                    const expectedMin = Math.min(KORAP_DOWNLOAD_HITC, result.hits);
+                    dataRows.should.be.at.least(expectedMin,
+                        `CSV has ${dataRows} data rows, expected at least ${expectedMin}`);
+                    dataRows.should.be.at.most(KORAP_DOWNLOAD_HITC,
+                        `CSV has ${dataRows} data rows, more than the requested ${KORAP_DOWNLOAD_HITC}`);
+                })).timeout(KORAP_DOWNLOAD_TIMEOUT + 60000);
+        });
 
         // Logout must be the LAST UI test. Mocha runs a suite's direct it()
         // tests before its nested describe() suites, so a top-level "Logout"

@@ -34,6 +34,10 @@ KORAP_URL="http://localhost:64543" KORAP_USERNAME="user2" KORAP_PASSWORD="passwo
 | `KORAP_SEARCH_TIMEOUT` | `60000` | Per-query timeout in ms for the "has hits" search tests. Applies to the actual page navigation/result wait, so raising it genuinely helps slow/complex queries on very large corpora avoid false-positive timeout failures |
 | `KORAP_VC` | _(none)_ | Optional virtual corpus restriction applied to the "has hits" searches, passed as the corpus query (`cq`). E.g. `KORAP_VC="pubDate in 2020"`. Narrowing the corpus keeps complex queries fast enough to finish within the timeout (also accepts `VC`) |
 | `KORAP_HEADLESS` | `true` | Set to `false` or `0` to run browser in UI mode (visible window) instead of headless |
+| `KORAP_TEST_DOWNLOADS` | `false` | When `true` or `1`, also run the export/download test (CSV export via the Kalamar export plugin). It runs logged in when credentials are given and logged out with `KORAP_USERNAME=""`, so the two cases can use different `KORAP_VC` settings. Exports are expensive for the server, so the test is opt-in and otherwise reported as skipped; enable it e.g. in a nightly run only |
+| `KORAP_DOWNLOAD_HITC` | `10` | Number of hits to export in the download test |
+| `KORAP_DOWNLOAD_QUERY` | _(first of `KORAP_QUERIES`)_ | Query used for the download test (must have hits in the public corpus when running without login) |
+| `KORAP_DOWNLOAD_TIMEOUT` | `120000` | Timeout in ms for a download test (search, export and file download together) |
 | `SLACK_WEBHOOK_URL` | _(none)_ | Slack webhook URL for test failure notifications (text only) |
 | `SLACK_TOKEN` | _(none)_ | Slack bot token for uploading failure screenshots |
 | `SLACK_CHANNEL_ID` | `C07CM4JS48H` | Slack channel ID for screenshot uploads (e.g., `C1234567890`) |
@@ -49,6 +53,7 @@ KORAP_URL="http://localhost:64543" KORAP_USERNAME="user2" KORAP_PASSWORD="passwo
 - The tests support both new variable names (`KORAP_USERNAME`, `KORAP_PASSWORD`) and legacy names (`KORAP_LOGIN`, `KORAP_PWD`) for backward compatibility
 - Set `LC_ALL=C` for consistent locale-independent test results
 - Use `KORAP_HEADLESS=false npm test` to run with a visible browser window for debugging
+- Use `KORAP_TEST_DOWNLOADS=1 npm test` (e.g. in a nightly cronjob or a separate pipeline schedule) to include the export/download test; it needs the Kalamar export plugin to be registered on the instance
 
 ## GitLab CI/CD
 

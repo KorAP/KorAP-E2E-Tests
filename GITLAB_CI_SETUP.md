@@ -126,6 +126,11 @@ To run tests on a schedule:
 3. Set your desired frequency (e.g., daily, weekly)
 4. The scheduled runs will include Slack notifications if configured
 
+To include the (server-expensive) export/download test only in some
+schedules, e.g. one nightly run, add the variable `KORAP_TEST_DOWNLOADS`
+with value `1` to that schedule's **Variables**. All other pipelines
+report this test as skipped.
+
 ## Local Testing
 
 To test the same configuration locally:
