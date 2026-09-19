@@ -127,3 +127,6 @@ config/production.json
 chrome-headless-shell/
 chrome/
 chromium/
+
+# Yarn lockfile (project uses npm)
+yarn.lock
