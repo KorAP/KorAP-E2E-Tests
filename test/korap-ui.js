@@ -392,7 +392,7 @@ describe('Running KorAP UI end-to-end tests on ' + KORAP_URL, () => {
         // genuinely session-free browser without touching the main page's
         // login (and the logout ordering below). Opt-in via
         // KORAP_TEST_DOWNLOADS because exports are expensive for the server.
-        describe('Downloads via export plugin', () => {
+        describe('Downloads via export UI', () => {
             const loggedIn = KORAP_LOGIN != "";
             const modeLabel = loggedIn ? 'when logged in' : 'when not logged in';
             let context = null;
